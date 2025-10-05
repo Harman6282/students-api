@@ -1,7 +1,16 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
+	"net/http"
 
-func main(){
-	fmt.Println("welcome")
+	config "github.com/Harman6282/students-api/internal"
+)
+
+func main() {
+	cfg := config.MustLoad()
+
+
+
+
 }

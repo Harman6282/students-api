@@ -8,7 +8,7 @@ import (
 	"github.com/ilyakaznacheev/cleanenv"
 )
 
-type HTTPServer struct {
+type HTTPServer struct { 
 	Addr string
 }
 
