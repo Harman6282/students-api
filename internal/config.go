@@ -8,8 +8,8 @@ import (
 	"github.com/ilyakaznacheev/cleanenv"
 )
 
-type HTTPServer struct { 
-	Addr string
+type HTTPServer struct {
+	Addr string  `yaml:"address" env-required:"true"`
 }
 
 // env-default:"production"
