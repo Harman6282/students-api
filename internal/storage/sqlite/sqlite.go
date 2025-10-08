@@ -47,9 +47,7 @@ func (s *Sqlite) CreateStudent(name string, email string, age int) (int64, error
 
 	result, err := stmt.Exec(name, email, age)
 	if err != nil {
-		{
-			return 0, err
-		}
+		return 0, err
 	}
 
 	lastId, err := result.LastInsertId()
@@ -72,7 +70,6 @@ func (s *Sqlite) GetStudentById(id int64) (types.Student, error) {
 
 	err = stmt.QueryRow(id).Scan(&student.Id, &student.Name, &student.Email, &student.Age)
 	if err != nil {
-
 		if err == sql.ErrNoRows {
 			return types.Student{}, fmt.Errorf("no student found with id %s", fmt.Sprint(id))
 		}
@@ -114,5 +111,67 @@ func (s *Sqlite) GetStudents() ([]types.Student, error) {
 
 	}
 	return students, nil
+
+}
+
+func (s *Sqlite) UpdateStudent(name string, email string, age int, id int64) (types.Student, error) {
+	stmt, err := s.Db.Prepare("UPDATE students SET name = ?, email = ?, age = ? WHERE id = ?")
+	if err != nil {
+		return types.Student{}, err
+	}
+
+	defer stmt.Close()
+
+	result, err := stmt.Exec(name, email, age, id)
+	if err != nil {
+		return types.Student{}, err
+	}
+
+	// Check if any row was updated
+	rows, err := result.RowsAffected()
+	if err != nil {
+		return types.Student{}, err
+	}
+	if rows == 0 {
+		return types.Student{}, fmt.Errorf("no student found with id %d", id)
+	}
+
+	var updated types.Student
+	err = s.Db.QueryRow("SELECT id, name, email, age FROM students WHERE id = ?", id).Scan(
+		&updated.Id, &updated.Name, &updated.Email, &updated.Age,
+	)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return types.Student{}, fmt.Errorf("no student found with id %s", fmt.Sprint(id))
+		}
+		return types.Student{}, fmt.Errorf("query error: %w", err)
+	}
+
+	return updated, nil
+}
+
+func (s *Sqlite) DeleteStudent(id int64) (int64, error) {
+	stmt, err := s.Db.Prepare("DELETE FROM students WHERE id = ?")
+	if err != nil {
+		return -1, err
+	}
+
+	defer stmt.Close()
+
+	result, err := stmt.Exec(id)
+
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return -1, fmt.Errorf("no student found with id %s", fmt.Sprint(id))
+		}
+		return -1, fmt.Errorf("query error: %w", err)
+	}
+
+	rows, _ := result.RowsAffected()
+
+	if rows == 0 {
+		return -1, fmt.Errorf("no student found with id %s", fmt.Sprint(id))
+	}
+	return id, nil
 
 }
